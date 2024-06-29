@@ -6,13 +6,14 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 export default function ChatEnvironment() {
   const [input, setInput] = React.useState('')
-  const [color, setColor] = React.useState('bg-gray-800')
-  const [data, setData] = React.useState([
-    {
-      input: 'Hi Gemini',
-      response: 'Hi there! How can I help you today?',
-    },
-  ])
+  const [data, setData] = React.useState([{ input: '', response: 'Hi there! How can I help you?'}])
+
+  React.useEffect(() => {
+    const storedData = localStorage.getItem('myData')
+    if (storedData) {
+      setData(JSON.parse(storedData))
+    }
+  }, [])
 
   async function getResponse() {
     const prompt = input
@@ -32,6 +33,7 @@ export default function ChatEnvironment() {
           ...newData[lastIndex],
           response: responseText,
         }
+        localStorage.setItem('myData', JSON.stringify(newData))
         return newData
       })
     } catch (error) {
@@ -47,6 +49,11 @@ export default function ChatEnvironment() {
     }
   }
 
+  function handleNewChat() {
+    setData([{ input: '', response: 'Hi there! How can I help you?'}])
+    localStorage.removeItem('myData')
+  }
+
   function handleSubmit(e) {
     e.preventDefault()
     if (input === '') return
@@ -59,11 +66,13 @@ export default function ChatEnvironment() {
       })
     }, 1000)
   }
+
   return (
-    <section className="w-screen h-full flex flex-col bg-gray-950">
+    <main className="w-[99vw] h-full flex flex-col bg-gray-950">
       <section className="pb-20 pt-14 flex flex-col">
         {data.map((item, index) => (
           <>
+            {item.input && 
             <section
               className="user-chat flex flex-col px-5 py-3 self-end"
               key={index}
@@ -73,6 +82,7 @@ export default function ChatEnvironment() {
                 {item.input}
               </p>
             </section>
+            }
             <section className="ai-reply flex flex-col p-2 self-start">
               <h3 className="font-bold self-start p-1 text-green-500">
                 Gemini
@@ -90,6 +100,7 @@ export default function ChatEnvironment() {
         className="fixed bottom-0 p-4 flex justify-center w-full bg-gray-950 mt-8"
         onSubmit={handleSubmit}
       >
+        <button type="button" className="bg-gray-900 border border-gray-700 rounded-full mr-2 text-xl text-white hover:bg-gray-800 disabled:bg-gray-400" onClick={handleNewChat}>+</button> 
         <input
           type="text"
           value={input}
@@ -105,6 +116,6 @@ export default function ChatEnvironment() {
           SEND
         </button>
       </form>
-    </section>
+    </main>
   )
 }
