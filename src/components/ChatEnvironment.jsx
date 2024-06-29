@@ -6,6 +6,7 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 export default function ChatEnvironment() {
   const [input, setInput] = React.useState('')
+  const [color, setColor] = React.useState('bg-gray-800')
   const [data, setData] = React.useState([
     {
       input: 'Hi Gemini',
@@ -34,7 +35,15 @@ export default function ChatEnvironment() {
         return newData
       })
     } catch (error) {
-      console.error('Error generating response:', error)
+       setData((prevData) => {
+         const newData = [...prevData]
+         const lastIndex = newData.length - 1
+         newData[lastIndex] = {
+           ...newData[lastIndex],
+           response: "**Error generating response, Kindly retry**",
+         }
+         return newData
+       })
     }
   }
 
@@ -68,8 +77,9 @@ export default function ChatEnvironment() {
               <h3 className="font-bold self-start p-1 text-green-500">
                 Gemini
               </h3>
+
               <ReactMarkdown
-                className="font-normal markdown p-3 bg-gray-800 rounded-md leading-relaxed text-gray-200"
+                className={`font-normal markdown p-3 ${item.response === '**Error generating response, Kindly retry**' ? 'bg-red-600' : 'bg-gray-800' } rounded-md leading-relaxed text-gray-200`}
                 children={item.response}
               />
             </section>
